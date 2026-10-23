@@ -57,6 +57,27 @@ The workbook exposes three macros (see [DeviceConfigGenerator.bas](DeviceConfigG
 
 ## How to run
 
-See [HowToRun.txt](HowToRun.txt) for the step-by-step Excel setup
-(importing the `.bas` module into a macro-enabled workbook) and for running
-the macros via `Alt+F8`.
+Excel VBA device configuration generator (Windows Excel)
+
+SETUP
+1. Open Devices Configuration Variables.xlsx in desktop Excel.
+2. Save As an Excel Macro-Enabled Workbook (*.xlsm).
+3. Press Alt+F11, then File > Import File; select DeviceConfigGenerator.bas.
+4. Save the workbook and return to Excel.
+
+RUN
+Press Alt+F8 and choose one of these macros:
+- ValidateTemplateVariables: choose the UTF-8 template; checks all template tokens against column A and reports missing/duplicate names.
+- GenerateSelectedDevice: choose the device column letter (B, C, ... AA), then the template and an output folder; creates one file for that column. Blank and missing values become no-value. Duplicate names use the first matching row and are reported.
+- GenerateAllDeviceConfigs: choose the template and an output folder; validates first and stops for missing/duplicate names. After validation succeeds, generates one file for each nonblank header from B onward. Blank values become no-value.
+
+LAYOUT
+Worksheet must be named DP Template Variables.
+Row 1 has device/site labels; column A has case-sensitive variable names, starting at A2.
+Columns B onward contain per-device values.
+Variable names support letters, digits, underscores and hyphens after $.
+Values are read using Value2 (not Excel's displayed number formatting). Store identifiers requiring leading zeros as text.
+Output names use $device-name, falling back to the row-1 site, plus a column-number suffix for uniqueness. Existing files are never overwritten.
+Templates and output use UTF-8; generated files have no byte-order mark.
+No additional VBA references are required.
+
