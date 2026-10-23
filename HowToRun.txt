@@ -1,0 +1,35 @@
+Excel VBA device configuration generator (Windows Excel)
+
+SETUP
+1. Open Devices Configuration Variables.xlsx in desktop Excel.
+2. Save As an Excel Macro-Enabled Workbook (*.xlsm).
+3. Press Alt+F11, then File > Import File; select DeviceConfigGenerator.bas.
+4. Save the workbook and return to Excel.
+
+RUN
+Press Alt+F8 and choose one of these macros:
+- ValidateTemplateVariables: choose the UTF-8 template; checks all template tokens against column A and reports missing/duplicate names.
+- GenerateFirstDevicePreview: choose the template and an output folder; creates one file using column B. Blank and missing values become no-value. Duplicate names use the first matching row and are reported.
+- GenerateAllDeviceConfigs: choose the template and an output folder; validates first and stops for missing/duplicate names. After validation succeeds, generates one file for each nonblank header from B onward. Blank values become no-value.
+
+LAYOUT
+Worksheet must be named DP Template Variables.
+Row 1 has device/site labels; column A has case-sensitive variable names, starting at A2.
+Columns B onward contain per-device values.
+Variable names support letters, digits, underscores and hyphens after $.
+Values are read using Value2 (not Excel's displayed number formatting). Store identifiers requiring leading zeros as text.
+Output names use $device-name, falling back to the row-1 site, plus a column-number suffix for uniqueness. Existing files are never overwritten.
+Templates and output use UTF-8; generated files have no byte-order mark.
+No additional VBA references are required.
+
+CURRENT INPUT VALIDATION
+23 distinct template variables.
+Missing: $dirty2-interface.
+Duplicate: $dirty1-interface in A6 and A7.
+Check whether A7 should be $dirty2-interface; do not rename it without confirming the intended mapping.
+
+TEST OUTPUT
+First device: Croydon, UK (column B), $device-name = oz01idei01.
+oz01idei01-preview.txt was generated from the supplied files using the same token and blank-replacement rules as the VBA code. The VBA itself was not executed in Excel in this session.
+The missing $dirty2-interface is no-value in this preview. All blank values are also no-value. The preview uses the first duplicate row.
+The workbook and template provided as inputs were not changed.

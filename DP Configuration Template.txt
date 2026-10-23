@@ -1,0 +1,112 @@
+!
+! The following commands will take effect only
+! once the device has been rebooted!
+!
+manage snmp versions-after-reset set "v3"
+device linkaggr dynamic-mode-support set enable
+device tunneling inspect gre set Disabled
+device tunneling inspect gtp set Disabled
+device tunneling inspect l2tp set Disabled
+device tunneling inspect ipinip set Disabled
+system diagnostics global status set Disabled
+!
+! REBOOT HERE
+!
+! The following commands take effect immediately
+! upon execution!
+!
+net ip-interface create $bgp-data-interface-IP 13 -lb $bgp-interface
+net ip-interface create $bgp-data-loopback-IP 32 LO -lb "lo for BGP Flowspec"
+net data-route create $bgp-data-route 32 $bgp-data-route-gw
+net data-route create 0.0.0.0 0 $bgp-data-route-gw
+!
+net l2-interface set 1 -ad up -ifd "DP-tap -> $tap-interface"
+net l2-interface set 13 -ad up -ifd "DP-bgp -> $bgp-interface"
+net l2-interface set 9 -ad up -ifd "DP-clean -> $clean1-interface"
+net l2-interface set 10 -ad up -ifd "DP-clean2 -> $clean2-interface"
+net l2-interface set 11 -ad up -ifd "DP-dirty1 -> $dirty1-interface"
+net l2-interface set 12 -ad up -ifd "DP-dirty2 -> $dirty2-interface"
+net l2-interface set MNG-1 -ad up -ifd "DP-mngmt -> $mngmt-interface"
+!
+device static-forwarding-table del 1 -dst 2
+device static-forwarding-table del 2 -dst 1 -t Destination
+device static-forwarding-table del 13 -dst 14
+device static-forwarding-table del 14 -dst 13 -t Destination
+device static-forwarding-table del 31 -dst 32
+device static-forwarding-table del 32 -dst 31 -t Destination
+!
+device linkaggr mode set T-1 -m Dynamic -t Fast
+device linkaggr mode set T-2 -m Dynamic -t Fast
+device linkaggr ports set 9 -t T-1
+device linkaggr ports set 10 -t T-1
+device linkaggr ports set 11 -t T-2
+device linkaggr ports set 12 -t T-2
+net l2-interface set T-1 -ad up -ifd "DP-clean-9/10 -> $clean-trunk"
+net l2-interface set T-2 -ad up -ifd "DP-dirty-11/12 -> $dirty-trunk"
+device static-forwarding-table setCreate T-1 -dst T-2
+device static-forwarding-table setCreate T-2 -dst T-1 -t Destination
+!
+device vlan-mapping table create 1 $tap-vlanin-inbound -ep 1 -ev $tap-vlanin-outbound
+device vlan-mapping table create 1 $tap-vlanbi-inbound -ep 1 -ev $tap-vlanbi-outbound
+device vlan-mapping status set enable
+!
+system mib2-name set $device-name
+manage terminal prompt set $device-name
+manage ssh status set enable
+manage secure-web status set enable
+services auditing status set Enabled
+manage syslog global-status set Enabled
+!
+services ntp polling-interval set 3600
+services ntp status set enable
+services ntp time-zone set 00:00
+services ntp server-port set 123
+services ntp server-name set $ntp-server
+!
+manage user authentication set "TACACS+ and Users Table"
+manage tacacs-plus server-secret set $tacacs-server-secret
+manage tacacs-plus backup-server-secret set $tacacs-backup-server-secret
+manage tacacs-plus server-addr set $tacacs-server
+manage tacacs-plus backup-server-addr set $tacacs-backup-server
+manage user alternative-auth set enable
+!
+dp packet-anomalies table set 120 -ac no-report -rs Low -ra process
+dp packet-anomalies table set 103 -ac no-report -rs Low -ra bypass
+dp packet-anomalies table set 104 -ac no-report -rs Low -ra bypass
+dp packet-anomalies table set 105 -ac no-report -rs Low -ra process
+dp packet-anomalies table set 113 -ac no-report -rs Low -ra process
+dp packet-anomalies table set 125 -ac no-report -rs Low -ra process
+dp packet-anomalies table set 128 -rs Low -ra bypass
+dp packet-anomalies table set 100 -ac no-report -rs Low -ra bypass
+dp packet-anomalies table set 131 -rs Low -ra bypass
+dp packet-anomalies table set 110 -ac no-report -rs Low -ra process
+dp packet-anomalies table set 119 -ac no-report -rs Low -ra process
+dp packet-anomalies table set 108 -ac no-report -rs Low -ra process
+dp packet-anomalies table set 126 -rs Low -ra bypass
+dp packet-anomalies table set 107 -rs Low -ra bypass
+!
+dp behavioral-DoS global advanced bypass set tcp-rst context-tag -bc tcp-rst -bf context-tag -bs bypass -sn 0 -s ""
+dp behavioral-DoS global advanced bypass set udp context-tag -bc udp -bf context-tag -bs bypass -sn 0 -s ""
+dp behavioral-DoS global advanced bypass set icmp context-tag -bc icmp -bf context-tag -bs bypass -sn 0 -s ""
+dp behavioral-DoS global advanced bypass set igmp context-tag -bc igmp -bf context-tag -bs bypass -sn 0 -s ""
+dp behavioral-DoS global advanced bypass set tcp-syn context-tag -bc tcp-syn -bf context-tag -bs bypass -sn 0 -s ""
+dp behavioral-DoS global advanced bypass set tcp-ack-fin context-tag -bc tcp-ack-fin -bf context-tag -bs bypass -sn 0 -s ""
+dp behavioral-DoS global advanced bypass set tcp-syn-ack context-tag -bc tcp-syn-ack -bf context-tag -bs bypass -sn 0 -s ""
+dp behavioral-DoS global advanced bypass set tcp-frag context-tag -bc tcp-frag -bf context-tag -bs bypass -sn "" -s ""
+dp behavioral-DoS global advanced bypass set udp-frag context-tag -bc udp-frag -bf context-tag -bs bypass -sn "" -s ""
+dp behavioral-DoS global advanced bypass set tcp-syn destination-port -bc tcp-syn -bf destination-port -bs accept -sn 443 -s ""
+dp behavioral-DoS global advanced bypass set tcp-rst destination-port -bc tcp-rst -bf destination-port -bs accept -sn 443 -s ""
+dp behavioral-DoS global advanced bypass set tcp-ack-fin destination-port -bc tcp-ack-fin -bf destination-port -bs accept -sn 443 -s ""
+dp behavioral-DoS global advanced bypass set tcp-syn-ack destination-port -bc tcp-syn-ack -bf destination-port -bs accept -sn 443 -s ""
+!
+dp dns-protection global advanced bypass set dns-a context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-mx context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-ptr context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-aaaa context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-text context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-soa context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-naptr context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-srv context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-other context-tag -bs bypass -sn 0
+dp dns-protection global advanced bypass set dns-https context-tag -bs bypass -sn 0
+!
