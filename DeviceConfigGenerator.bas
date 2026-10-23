@@ -7,7 +7,7 @@ Public Sub ValidateTemplateVariables()
     RunGenerator 0
 End Sub
 
-Public Sub GenerateSelectedDevicePreview()
+Public Sub GenerateSelectedDevice()
     Dim answer As String, col As Long, i As Long, letter As Long
     On Error GoTo Failed
     answer = UCase$(Trim$(InputBox("Enter the device column letter (B, C, ... AA):", "Select device column", "B")))

@@ -9,7 +9,7 @@ SETUP
 RUN
 Press Alt+F8 and choose one of these macros:
 - ValidateTemplateVariables: choose the UTF-8 template; checks all template tokens against column A and reports missing/duplicate names.
-- GenerateFirstDevicePreview: choose the template and an output folder; creates one file using column B. Blank and missing values become no-value. Duplicate names use the first matching row and are reported.
+- GenerateSelectedDevice: choose the device column letter (B, C, ... AA), then the template and an output folder; creates one file for that column. Blank and missing values become no-value. Duplicate names use the first matching row and are reported.
 - GenerateAllDeviceConfigs: choose the template and an output folder; validates first and stops for missing/duplicate names. After validation succeeds, generates one file for each nonblank header from B onward. Blank values become no-value.
 
 LAYOUT
